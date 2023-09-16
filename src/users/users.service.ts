@@ -1,26 +1,113 @@
-import { Injectable } from '@nestjs/common';
-import { CreateUserDto } from './dto/create-user.dto';
-import { UpdateUserDto } from './dto/update-user.dto';
+import {
+  Injectable,
+  InternalServerErrorException,
+  NotFoundException,
+} from '@nestjs/common';
+import { Response, ResponseCount } from 'src/common/interfaces';
+import { PaginationDto } from 'src/common/dto/pagination.dto';
+import { CreateUserDto, UpdateUserDto } from './dto';
+import { InjectModel } from '@nestjs/mongoose';
+import { User } from './schemas/user.schema';
+import { Model } from 'mongoose';
+import * as bcrypt from 'bcrypt';
 
 @Injectable()
 export class UsersService {
-  create(createUserDto: CreateUserDto) {
-    return 'This action adds a new user';
+  constructor(
+    @InjectModel(User.name)
+    private readonly userModel: Model<User>,
+  ) {}
+
+  async create(createUserDto: CreateUserDto): Promise<Response<User>> {
+    try {
+      const { password, ...userData } = createUserDto;
+      const user = await this.userModel.create({
+        ...userData,
+        password: this.encryptPassword(password),
+      });
+
+      return {
+        data: user,
+        message: 'Usuario creado satisfactoriamente.',
+        statusCode: 201,
+      };
+    } catch (error) {
+      this.exceptionHanlder(error);
+    }
   }
 
-  findAll() {
-    return `This action returns all users`;
+  async findAll(paginationDto: PaginationDto): Promise<ResponseCount<User>> {
+    const { limit = 10, offset = 0 } = paginationDto;
+    const users = await this.userModel.find().limit(limit).skip(offset);
+    const count = await this.userModel
+      .countDocuments()
+      .limit(limit)
+      .skip(offset);
+
+    return {
+      data: {
+        count: count,
+        rows: users,
+      },
+      message: 'Usuarios obtenidos satisfactoriamente.',
+      statusCode: 200,
+    };
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} user`;
+  async findOne(id: string): Promise<Response<User>> {
+    const user = await this.userModel.findById(id);
+    if (!user) {
+      throw new NotFoundException(`El usuario con ID: ${id} no existe`);
+    }
+
+    return {
+      data: user,
+      message: 'Usuario obtenido satisfactoriamente.',
+      statusCode: 200,
+    };
   }
 
-  update(id: number, updateUserDto: UpdateUserDto) {
-    return `This action updates a #${id} user`;
+  async update(
+    id: string,
+    updateUserDto: UpdateUserDto,
+  ): Promise<Response<User>> {
+    const { password } = updateUserDto;
+    if (password) {
+      updateUserDto.password = this.encryptPassword(password);
+    }
+
+    const user = await this.userModel.findByIdAndUpdate(id, updateUserDto);
+    if (!user) {
+      throw new NotFoundException(`El usuario con ID: ${id} no existe`);
+    }
+
+    return {
+      data: user,
+      message: 'Usuario actualizado satisfactoriamente.',
+      statusCode: 200,
+    };
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} user`;
+  async remove(id: string): Promise<Response<User>> {
+    const user = await this.userModel.findByIdAndRemove(id);
+    if (!user) {
+      throw new NotFoundException(`El usuario con ID: ${id} no existe`);
+    }
+
+    return {
+      data: user,
+      message: 'Usuario eliminado satisfactoriamente.',
+      statusCode: 200,
+    };
+  }
+
+  private encryptPassword(password: string): string {
+    const saltRounds = 10;
+    return bcrypt.hashSync(password, saltRounds);
+  }
+
+  private exceptionHanlder(error: any) {
+    console.log(error);
+    throw new InternalServerErrorException('Check logs');
   }
 }
