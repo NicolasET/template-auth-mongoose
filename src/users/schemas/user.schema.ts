@@ -8,7 +8,7 @@ export class User {
   @Prop({ default: true })
   isActive: boolean;
 
-  @Prop({ immutable: true, unique: true, required: true })
+  @Prop({ immutable: true, lowercase: true, required: true, unique: true })
   username: string;
 
   @Prop({ required: true, select: false })
