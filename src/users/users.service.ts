@@ -57,7 +57,7 @@ export class UsersService {
   async findOne(id: string): Promise<Response<User>> {
     const user = await this.userModel.findById(id);
     if (!user) {
-      throw new NotFoundException(`El usuario con ID: ${id} no existe`);
+      throw new NotFoundException(`El usuario con ID: ${id} no existe.`);
     }
 
     return {
@@ -78,7 +78,7 @@ export class UsersService {
 
     const user = await this.userModel.findByIdAndUpdate(id, updateUserDto);
     if (!user) {
-      throw new NotFoundException(`El usuario con ID: ${id} no existe`);
+      throw new NotFoundException(`El usuario con ID: ${id} no existe.`);
     }
 
     return {
@@ -91,7 +91,7 @@ export class UsersService {
   async remove(id: string): Promise<Response<User>> {
     const user = await this.userModel.findByIdAndRemove(id);
     if (!user) {
-      throw new NotFoundException(`El usuario con ID: ${id} no existe`);
+      throw new NotFoundException(`El usuario con ID: ${id} no existe.`);
     }
 
     return {
