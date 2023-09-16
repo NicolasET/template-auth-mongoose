@@ -115,7 +115,7 @@ export class UsersService {
 
     console.log(error);
     throw new InternalServerErrorException(
-      'Consulta los registros del servidor.',
+      'Error interno en el servidor, revisa los logs.',
     );
   }
 }
