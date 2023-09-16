@@ -1,4 +1,9 @@
-import { IsString, IsStrongPassword, MinLength } from 'class-validator';
+import {
+  IsMongoId,
+  IsString,
+  IsStrongPassword,
+  MinLength,
+} from 'class-validator';
 
 export class CreateUserDto {
   @IsString({ message: 'La contraseña debe ser una cadena de texto.' })
@@ -22,4 +27,7 @@ export class CreateUserDto {
     message: 'El nombre de usuario debe ser mayor o igual a 5 caracteres.',
   })
   username: string;
+
+  @IsMongoId({ message: 'El rol debe ser un ID de MongoDB.' })
+  role: string;
 }
