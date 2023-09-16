@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   Injectable,
   InternalServerErrorException,
   NotFoundException,
@@ -21,13 +22,12 @@ export class UsersService {
   async create(createUserDto: CreateUserDto): Promise<Response<User>> {
     try {
       const { password, ...userData } = createUserDto;
-      const user = await this.userModel.create({
+      await this.userModel.create({
         ...userData,
         password: this.encryptPassword(password),
       });
 
       return {
-        data: user,
         message: 'Usuario creado satisfactoriamente.',
         statusCode: 201,
       };
@@ -82,7 +82,6 @@ export class UsersService {
     }
 
     return {
-      data: user,
       message: 'Usuario actualizado satisfactoriamente.',
       statusCode: 200,
     };
@@ -107,7 +106,16 @@ export class UsersService {
   }
 
   private exceptionHanlder(error: any) {
+    if (error.code === 11000) {
+      const { username } = error.keyValue;
+      throw new BadRequestException(
+        `El nombre de usuario: ${username} ya existe.`,
+      );
+    }
+
     console.log(error);
-    throw new InternalServerErrorException('Check logs');
+    throw new InternalServerErrorException(
+      'Consulta los registros del servidor.',
+    );
   }
 }
