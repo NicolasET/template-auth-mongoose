@@ -28,6 +28,6 @@ export class CreateUserDto {
   })
   username: string;
 
-  @IsMongoId({ message: 'El rol debe ser un ID de MongoDB.' })
+  @IsMongoId({ message: 'El rol debe ser un ID de mongo.' })
   role: string;
 }
